@@ -1,0 +1,488 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Utilisateur {
+  id                   Int                   @id @default(autoincrement())
+  nom                  String                @db.VarChar(100)
+  prenom               String                @db.VarChar(100)
+  email                String                @unique @db.VarChar(150)
+  motDePasse           String                @db.VarChar(255)
+  role                 String                @db.VarChar(20)
+  telephone            String?               @db.VarChar(20)
+  statut               String                @default("ACTIF") @db.VarChar(20)
+  dateCreation         DateTime              @default(now())
+  compteurTentatives   Int                   @default(0)
+  bloqueJusquA         DateTime?
+  photo                String?               @db.VarChar(255)
+  administrateur       Administrateur?
+  annonces             Annonce[]
+  clubs                Club[]
+  dashboard            Dashboard?
+  enseignant           Enseignant?
+  etudiant             Etudiant?
+  historiqueConnexions HistoriqueConnexion[]
+  inscriptions         Inscription[]
+  notifications        Notification[]
+  roleService          RoleService?
+  sessionService       SessionService?
+  tokensReinit         TokenReinit[]
+}
+
+model Administrateur {
+  id               Int          @id @default(autoincrement())
+  utilisateurId    Int          @unique
+  matricule        String       @unique @db.VarChar(50)
+  utilisateur      Utilisateur  @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  annoncesPubliees Annonce[]    @relation("AdminAnnonces")
+  mailService      MailService?
+}
+
+model TokenReinit {
+  id             Int         @id @default(autoincrement())
+  utilisateurId  Int
+  valeur         String      @unique @db.VarChar(255)
+  dateExpiration DateTime
+  statut         String      @default("ACTIF") @db.VarChar(20)
+  utilisateur    Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+}
+
+model SessionService {
+  id            Int         @id @default(autoincrement())
+  logic         String
+  idUtilisateur Int         @unique
+  utilisateur   Utilisateur @relation(fields: [idUtilisateur], references: [id])
+}
+
+model HistoriqueConnexion {
+  id            Int         @id @default(autoincrement())
+  utilisateurId Int
+  date          DateTime    @default(now())
+  adresseIP     String?     @db.VarChar(45)
+  statut        String      @db.VarChar(20)
+  resultat      String?
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+}
+
+model RoleService {
+  id            Int         @id @default(autoincrement())
+  listeRoles    String
+  idUtilisateur Int         @unique
+  utilisateur   Utilisateur @relation(fields: [idUtilisateur], references: [id])
+}
+
+model Etudiant {
+  utilisateurId   Int              @unique
+  cne             String           @unique @db.VarChar(50)
+  statut          String           @default("ACTIF") @db.VarChar(20)
+  idEtudiant      Int              @id @default(autoincrement())
+  idFiliere       Int?
+  idGroupeTD      Int?
+  idGroupeTP      Int?
+  idGroupeProjet  Int?
+  anneeInscription Int              @default(1)
+  absences        Absence[]
+  compteurAbsence CompteurAbsence?
+  filiere         Filiere?         @relation(fields: [idFiliere], references: [idFiliere])
+  groupeProjet    Groupe?          @relation("EtudiantProjet", fields: [idGroupeProjet], references: [idGroupe])
+  groupeTD        Groupe?          @relation("EtudiantTD", fields: [idGroupeTD], references: [idGroupe])
+  groupeTP        Groupe?          @relation("EtudiantTP", fields: [idGroupeTP], references: [idGroupe])
+  utilisateur     Utilisateur      @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  notes           Note[]
+  pfes            Pfe[]
+  stages          Stage[]
+  clubsAsMembre   Club[]           @relation("ClubMembres")
+}
+
+model Enseignant {
+  utilisateurId      Int           @unique
+  matricule          String        @unique @db.VarChar(50)
+  grade              String?       @db.VarChar(50)
+  specialite         String?       @db.VarChar(100)
+  volumeHoraireBase  Int?
+  idEnseignant       Int           @id @default(autoincrement())
+  statut             String        @default("ACTIF") @db.VarChar(20)
+  type               String?       @db.VarChar(50)
+  affectations       Affectation[]
+  utilisateur        Utilisateur   @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  groupesResponsable Groupe[]      @relation("GroupeEnseignant")
+  modulesResponsable Module[]      @relation("ResponsableModule")
+  pfesEncadres       Pfe[]
+  seances            Seance[]
+  jurysMembre        Jury[]        @relation("JuryEnseignants")
+}
+
+model Filiere {
+  code            String     @unique @db.VarChar(20)
+  intitule        String     @db.VarChar(200)
+  idFiliere       Int        @id @default(autoincrement())
+  duree           Int?       @default(3)
+  niveauEtude     String?    @default("Cycle d'Ingénieur") @db.VarChar(50)
+  nombreSemestres Int?       @default(6)
+  documents       Document[]
+  edts            Edt[]
+  etudiants       Etudiant[]
+  groupes         Groupe[]
+  modules         Module[]
+}
+
+model Groupe {
+  type            String      @db.VarChar(10)
+  capaciteMax     Int?
+  idFiliere       Int
+  idGroupe        Int         @id @default(autoincrement())
+  nom             String?     @db.VarChar(50)
+  annee           String?     @db.VarChar(10)
+  description     String?
+  idEnseignant    Int?
+  edts            Edt[]
+  etudiantsProjet Etudiant[]  @relation("EtudiantProjet")
+  etudiantsTD     Etudiant[]  @relation("EtudiantTD")
+  etudiantsTP     Etudiant[]  @relation("EtudiantTP")
+  enseignant      Enseignant? @relation("GroupeEnseignant", fields: [idEnseignant], references: [idEnseignant])
+  filiere         Filiere     @relation(fields: [idFiliere], references: [idFiliere], onDelete: Cascade)
+  seances         Seance[]
+}
+
+model Club {
+  nom           String       @db.VarChar(100)
+  description   String?
+  statut        String       @default("ACTIF") @db.VarChar(20)
+  idClub        Int          @id @default(autoincrement())
+  idResponsable Int?
+  responsable   Utilisateur? @relation(fields: [idResponsable], references: [id])
+  membres       Etudiant[]   @relation("ClubMembres")
+}
+
+model Module {
+  code          String        @unique @db.VarChar(20)
+  intitule      String        @db.VarChar(200)
+  coefficient   Decimal?      @db.Decimal(4, 2)
+  semestre      String?       @db.VarChar(10)
+  idFiliere     Int?
+  idResponsable Int?
+  idModule      Int           @id @default(autoincrement())
+  affectations  Affectation[]
+  documents     Document[]
+  examens       Examen[]
+  filiere       Filiere?      @relation(fields: [idFiliere], references: [idFiliere])
+  responsable   Enseignant?   @relation("ResponsableModule", fields: [idResponsable], references: [idEnseignant])
+  notes         Note[]
+  seances       Seance[]
+}
+
+model Affectation {
+  idAffectation    Int        @id @default(autoincrement())
+  typeIntervention String     @db.VarChar(50)
+  heuresAssignees  Int
+  idEnseignant     Int
+  idModule         Int
+  enseignant       Enseignant @relation(fields: [idEnseignant], references: [idEnseignant], onDelete: Cascade)
+  module           Module     @relation(fields: [idModule], references: [idModule], onDelete: Cascade)
+}
+
+model Document {
+  idDocument    Int      @id @default(autoincrement())
+  titre         String   @db.VarChar(200)
+  type          String   @db.VarChar(50)
+  cheminFichier String   @db.VarChar(255)
+  dateUpload    DateTime @default(now())
+  idModule      Int?
+  idAuteur      Int?
+  idFiliere             Int?
+  version               String?   @default("1.0") @db.VarChar(20)
+  status                String?   @default("PUBLIÉ") @db.VarChar(20)
+  author                String?   @default("Administration") @db.VarChar(100)
+  dateLimite            DateTime? @db.Date
+  deadline              String?   @db.VarChar(50)
+  description           String?   @db.Text
+  submissionsCount      Int?      @default(0)
+  totalStudents         Int?      @default(30)
+  nombreTelechargements Int?      @default(0)
+  filiere               Filiere?  @relation(fields: [idFiliere], references: [idFiliere], onDelete: Cascade)
+  module                Module?   @relation(fields: [idModule], references: [idModule], onDelete: Cascade)
+}
+
+model Semestre {
+  idSemestre     Int             @id @default(autoincrement())
+  libelle        String          @db.VarChar(50)
+  estCloture     Boolean         @default(false)
+  resultatsFinal ResultatFinal[]
+}
+
+model Edt {
+  idEDT     Int      @id @default(autoincrement())
+  idFiliere Int
+  idGroupe  Int
+  semestre  String   @db.VarChar(10)
+  statut    String   @default("PUBLIE") @db.VarChar(20)
+  filiere   Filiere  @relation(fields: [idFiliere], references: [idFiliere], onDelete: Cascade)
+  groupe    Groupe   @relation(fields: [idGroupe], references: [idGroupe], onDelete: Cascade)
+  seances   Seance[]
+}
+
+model Seance {
+  type            String      @db.VarChar(20)
+  jour            String      @db.VarChar(15)
+  heureDebut      String      @db.VarChar(10)
+  heureFin        String      @db.VarChar(10)
+  statut          String      @default("VALIDE") @db.VarChar(20)
+  idEDT           Int?
+  idEnseignant    Int?
+  idGroupe        Int?
+  idModule        Int
+  idSalle         Int?
+  idSeance        Int         @id @default(autoincrement())
+  motifAnnulation String?
+  absences        Absence[]
+  edt             Edt?        @relation(fields: [idEDT], references: [idEDT], onDelete: Cascade)
+  enseignant      Enseignant? @relation(fields: [idEnseignant], references: [idEnseignant])
+  groupe          Groupe?     @relation(fields: [idGroupe], references: [idGroupe])
+  module          Module      @relation(fields: [idModule], references: [idModule], onDelete: Cascade)
+  salle           Salle?      @relation(fields: [idSalle], references: [idSalle])
+}
+
+model Salle {
+  idSalle     Int      @id @default(autoincrement())
+  nom         String   @unique @db.VarChar(50)
+  capaciteMax Int
+  type        String   @db.VarChar(50)
+  statut      String   @default("DISPONIBLE") @db.VarChar(20)
+  examens     Examen[]
+  seances     Seance[]
+}
+
+model Absence {
+  statut         String        @default("INJUSTIFIEE") @db.VarChar(20)
+  dateSaisie     DateTime      @default(now())
+  estExamen      Boolean       @default(false)
+  idAbsence      Int           @id @default(autoincrement())
+  idEtudiant     Int
+  idJustificatif Int?          @unique
+  idSeance       Int
+  typeSeance     String?       @db.VarChar(20)
+  etudiant       Etudiant      @relation(fields: [idEtudiant], references: [idEtudiant], onDelete: Cascade)
+  justificatif   Justificatif? @relation(fields: [idJustificatif], references: [idJustificatif])
+  seance         Seance        @relation(fields: [idSeance], references: [idSeance], onDelete: Cascade)
+}
+
+model Justificatif {
+  idJustificatif Int      @id @default(autoincrement())
+  scanDocument   String?  @db.VarChar(255)
+  motif          String
+  dateSoumission DateTime @default(now())
+  etat           String   @default("EN_ATTENTE") @db.VarChar(20)
+  absence        Absence?
+}
+
+model CompteurAbsence {
+  idEtudiant          Int                  @id
+  tauxActuel          Decimal              @default(0) @db.Decimal(5, 2)
+  totalHeuresAbsence  Int                  @default(0)
+  totalHeuresModule   Int                  @default(0)
+  etudiant            Etudiant             @relation(fields: [idEtudiant], references: [idEtudiant], onDelete: Cascade)
+  serviceNotification ServiceNotification?
+}
+
+model ServiceNotification {
+  id                Int             @id @default(autoincrement())
+  logic             String
+  idCompteurAbsence Int             @unique
+  compteurAbsence   CompteurAbsence @relation(fields: [idCompteurAbsence], references: [idEtudiant])
+}
+
+model Examen {
+  idExamen Int      @id @default(autoincrement())
+  type     String   @db.VarChar(20)
+  date     DateTime @db.Date
+  heure    String   @db.VarChar(10)
+  idSalle  Int?
+  idModule Int
+  module   Module   @relation(fields: [idModule], references: [idModule], onDelete: Cascade)
+  salle    Salle?   @relation(fields: [idSalle], references: [idSalle])
+  notes    Note[]
+}
+
+model Note {
+  dateSaisie     DateTime      @default(now())
+  estVerrouillee Boolean       @default(false)
+  idEtudiant     Int
+  idExamen       Int?
+  idModule       Int
+  idNote         Int           @id @default(autoincrement())
+  moyenneModule  Decimal?      @db.Decimal(4, 2)
+  valeurCC       Decimal?      @db.Decimal(4, 2)
+  valeurEF       Decimal?      @db.Decimal(4, 2)
+  etudiant       Etudiant      @relation(fields: [idEtudiant], references: [idEtudiant], onDelete: Cascade)
+  examen         Examen?       @relation(fields: [idExamen], references: [idExamen])
+  module         Module        @relation(fields: [idModule], references: [idModule], onDelete: Cascade)
+  reclamations   Reclamation[]
+
+  @@unique([idEtudiant, idModule, idExamen])
+}
+
+model Reclamation {
+  idReclamation     Int      @id @default(autoincrement())
+  idNote            Int
+  motif             String
+  reponseEnseignant String?
+  dateDepot         DateTime @default(now())
+  statut            String   @default("OUVERTE") @db.VarChar(20)
+  note              Note     @relation(fields: [idNote], references: [idNote], onDelete: Cascade)
+}
+
+model ResultatFinal {
+  idResultat      Int      @id @default(autoincrement())
+  idSemestre      Int
+  moyenneGenerale Decimal? @db.Decimal(4, 2)
+  statut          String?  @db.VarChar(20)
+  estPublie       Boolean  @default(false)
+  semestre        Semestre @relation(fields: [idSemestre], references: [idSemestre], onDelete: Cascade)
+}
+
+model Pfe {
+  titre          String        @db.VarChar(255)
+  description    String?
+  statut         String        @default("EN_COURS") @db.VarChar(20)
+  dateSoutenance DateTime?     @db.Date
+  avisEncadrant  String?
+  idEncadrant    Int?
+  idEtudiant     Int?
+  idJury         Int?
+  idPG           Int           @id @default(autoincrement())
+  noteFinale     Decimal?      @db.Decimal(4, 2)
+  rapportDepose  Boolean       @default(false)
+  documents      DocumentPfe[]
+  encadrant      Enseignant?   @relation(fields: [idEncadrant], references: [idEnseignant])
+  etudiant       Etudiant?     @relation(fields: [idEtudiant], references: [idEtudiant])
+  jury           Jury?         @relation(fields: [idJury], references: [idJury])
+}
+
+model Stage {
+  idStage          Int           @id @default(autoincrement())
+  idEtudiant       Int
+  entreprise       String        @db.VarChar(100)
+  dateDebut        DateTime      @db.Date
+  dateFin          DateTime      @db.Date
+  conventionStatut String        @default("EN_PREPARATION") @db.VarChar(30)
+  rapportDepose    Boolean       @default(false)
+  noteStage        Decimal?      @db.Decimal(4, 2)
+  documents        DocumentPfe[]
+  etudiant         Etudiant      @relation(fields: [idEtudiant], references: [idEtudiant])
+}
+
+model Jury {
+  idJury             Int          @id @default(autoincrement())
+  dateSoutenance     DateTime     @db.Date
+  pfes               Pfe[]
+  membresEnseignants Enseignant[] @relation("JuryEnseignants")
+}
+
+model DocumentPfe {
+  idDocument    Int      @id @default(autoincrement())
+  idStage       Int?
+  fichierPDF    String   @db.VarChar(255)
+  dateArchivage DateTime @default(now())
+  type          String   @db.VarChar(50)
+  idPG          Int?
+  pfe           Pfe?     @relation(fields: [idPG], references: [idPG], onDelete: Cascade)
+  stage         Stage?   @relation(fields: [idStage], references: [idStage], onDelete: Cascade)
+}
+
+model Annonce {
+  titre          String          @db.VarChar(200)
+  contenu        String
+  dateCreation   DateTime        @default(now())
+  cible          String          @default("tous") @db.VarChar(100)
+  idAdminAuth    Int?
+  idAnnonce      Int             @id @default(autoincrement())
+  idAuteur       Int?
+  statut         String          @default("PUBLIEE") @db.VarChar(20)
+  urgent         Boolean         @default(false)
+  administrateur Administrateur? @relation("AdminAnnonces", fields: [idAdminAuth], references: [id])
+  auteur         Utilisateur?    @relation(fields: [idAuteur], references: [id])
+}
+
+model Notification {
+  idNotification Int         @id @default(autoincrement())
+  idUtilisateur  Int
+  type           String      @db.VarChar(50)
+  message        String
+  dateEnvoi      DateTime    @default(now())
+  lu             Boolean     @default(false)
+  priorite       String      @default("Normal") @db.VarChar(20)
+  utilisateur    Utilisateur @relation(fields: [idUtilisateur], references: [id], onDelete: Cascade)
+}
+
+model Dashboard {
+  idDashboard       Int                      @id @default(autoincrement())
+  idUtilisateur     Int                      @unique
+  role              String                   @db.VarChar(20)
+  dernierChargement DateTime                 @default(now())
+  utilisateur       Utilisateur              @relation(fields: [idUtilisateur], references: [id], onDelete: Cascade)
+  adminData         DashboardAdminData?
+  enseignantData    DashboardEnseignantData?
+  etudiantData      DashboardEtudiantData?
+}
+
+model DashboardAdminData {
+  id             Int       @id @default(autoincrement())
+  idDashboard    Int       @unique
+  nbNotesSaisies Int       @default(0)
+  nbPFEEnCours   Int       @default(0)
+  dashboard      Dashboard @relation(fields: [idDashboard], references: [idDashboard], onDelete: Cascade)
+}
+
+model DashboardEnseignantData {
+  id              Int       @id @default(autoincrement())
+  idDashboard     Int       @unique
+  modulesPendants String?
+  dashboard       Dashboard @relation(fields: [idDashboard], references: [idDashboard], onDelete: Cascade)
+}
+
+model DashboardEtudiantData {
+  id          Int       @id @default(autoincrement())
+  idDashboard Int       @unique
+  tauxAbsence Decimal   @default(0) @db.Decimal(5, 2)
+  dashboard   Dashboard @relation(fields: [idDashboard], references: [idDashboard], onDelete: Cascade)
+}
+
+model Formation {
+  idFormation     Int            @id @default(autoincrement())
+  intitule        String         @db.VarChar(200)
+  description     String?
+  type            String         @db.VarChar(50)
+  statut          String         @default("OUVERTE") @db.VarChar(20)
+  idCollaborateur Int?
+  collaborateur   Collaborateur? @relation(fields: [idCollaborateur], references: [idCollaborateur])
+  inscriptions    Inscription[]
+}
+
+model Collaborateur {
+  idCollaborateur Int         @id @default(autoincrement())
+  nomOrganisme    String      @db.VarChar(100)
+  contact         String?     @db.VarChar(150)
+  domaine         String?     @db.VarChar(100)
+  formations      Formation[]
+}
+
+model Inscription {
+  idInscription   Int         @id @default(autoincrement())
+  idUtilisateur   Int
+  idFormation     Int
+  dateInscription DateTime    @default(now())
+  statut          String      @default("VALIDEE") @db.VarChar(20)
+  formation       Formation   @relation(fields: [idFormation], references: [idFormation], onDelete: Cascade)
+  utilisateur     Utilisateur @relation(fields: [idUtilisateur], references: [id], onDelete: Cascade)
+}
+
+model MailService {
+  id               Int            @id @default(autoincrement())
+  logic            String
+  idAdministrateur Int            @unique
+  administrateur   Administrateur @relation(fields: [idAdministrateur], references: [id])
+}
