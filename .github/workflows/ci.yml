@@ -1,0 +1,73 @@
+name: CI FST-Connect
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Vérification frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Installer les dépendances frontend
+        run: npm ci
+
+      - name: Construire le frontend
+        run: npm run build
+
+  backend:
+    name: Vérification backend et Prisma
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installer les dépendances backend
+        run: npm ci
+
+      - name: Vérifier la syntaxe du point d'entrée
+        run: node --check index.js
+
+      - name: Vérifier le schéma Prisma
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+        run: npx prisma validate
+
+  docker:
+    name: Vérification Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Vérifier la configuration Compose
+        env:
+          POSTGRES_PASSWORD: ci_test_password
+          JWT_SECRET: ci_test_secret_not_for_production
+        run: docker compose config --quiet
