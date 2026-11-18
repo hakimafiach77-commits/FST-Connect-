@@ -1,0 +1,10 @@
+.git
+.env
+.env.*
+node_modules
+dist
+coverage
+*.log
+create_fst_issues.ps1
+create_issues.ps1
+update-fst-connect-issues.ps1
