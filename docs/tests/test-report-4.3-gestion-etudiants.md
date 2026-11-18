@@ -89,3 +89,4 @@ Vérification fonctionnelle, sécuritaire et d'intégration du module **Gestion 
 ## 5. Conclusion & Décision QA
 Le module de la carte **4.3 Gestion des étudiants** est **100% fonctionnel, sécurisé et conforme** aux règles métier académiques.  
 **Recommandation QA** : Déplacement de la carte Trello de la colonne **« En test »** vers la colonne **« À valider par la MOA »**.
+

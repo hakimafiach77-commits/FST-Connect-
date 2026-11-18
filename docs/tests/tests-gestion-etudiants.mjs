@@ -1,5 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '../../');
 
 console.log('================================================================');
 console.log('🧪 TEST SUITE QA: Carte Trello 4.3 "Gestion des étudiants"');
@@ -20,7 +25,6 @@ function assert(condition, testName, details = '') {
   }
 }
 
-const rootDir = process.cwd();
 const backendDir = path.join(rootDir, 'backend');
 const srcDir = path.join(rootDir, 'src');
 
@@ -101,5 +105,6 @@ if (failedTests === 0) {
 }
 console.log('================================================================\n');
 
-if (failedTests > 0) process.exit(1);
+export default { totalTests, passedTests, failedTests };
+if (process.argv[1] === fileURLToPath(import.meta.url) && failedTests > 0) process.exit(1);
 
