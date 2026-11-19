@@ -1,9 +1,14 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-console.log('=====================================================');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '../../');
+
+console.log('================================================================');
 console.log('🧪 TEST SUITE: Carte Trello 4.1 "Portail d\'accueil"');
-console.log('=====================================================\n');
+console.log('================================================================\n');
 
 let totalTests = 0;
 let passedTests = 0;
@@ -20,7 +25,6 @@ function assert(condition, testName, details = '') {
   }
 }
 
-const rootDir = process.cwd();
 const srcDir = path.join(rootDir, 'src');
 const landingPagePath = path.join(srcDir, 'pages', 'LandingPage.jsx');
 const appPath = path.join(srcDir, 'App.jsx');
@@ -81,14 +85,15 @@ console.log('\n🔍 9. PIED DE PAGE & MENTIONS LÉGALES');
 assert(landingContent.includes('© 2026 Faculté des Sciences et Techniques de Tanger'), 'Copyright et mentions FSTT 2026 présents');
 assert(landingContent.includes('d.informatique@fstt.ac.ma'), 'Email de contact département dans le footer');
 
-console.log('\n=====================================================');
+console.log('\n================================================================');
 console.log(`📊 RÉSULTAT DU CONTRÔLE: ${passedTests}/${totalTests} tests validés (${Math.round((passedTests/totalTests)*100)}%)`);
 if (failedTests === 0) {
   console.log('🎉 TOUS LES TESTS SONT AU VERT! CARTE 4.1 VALIDÉE AVEC SUCCÈS.');
 } else {
   console.log(`⚠️ ${failedTests} test(s) en échec.`);
 }
-console.log('=====================================================\n');
+console.log('================================================================\n');
 
-if (failedTests > 0) process.exit(1);
+export default { totalTests, passedTests, failedTests };
+if (process.argv[1] === fileURLToPath(import.meta.url) && failedTests > 0) process.exit(1);
 

@@ -18,9 +18,15 @@
 - **RF-4.1.8** : Foire aux questions (FAQ) sous forme d'accordéon interactif.
 - **RF-4.1.9** : Pied de page complet comprenant l'adresse physique, les contacts et les mentions légales.
 
-### 4.2 Gestion des Comptes Utilisateurs (Statut : En développement)
+### 4.2 Gestion des Comptes Utilisateurs (Statut : À valider par la MOA ⏳)
 - Gestion des rôles Administrateur, Enseignant, Étudiant, politique de mots de passe et historique de connexion.
 
-### 4.3 Gestion des Dossiers Étudiants (Statut : En développement)
-- Consultation, inscription, affectation par filière et groupe TD/TP.
-
+### 4.3 Gestion des Dossiers Étudiants (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.3.1** : Consultation du registre national des étudiants avec vue hiérarchique par filière et promotion (Années 1, 2, 3).
+- **RF-4.3.2** : Moteur de recherche réactif multi-critères permettant le filtrage par nom, prénom ou identifiant unique CNE.
+- **RF-4.3.3** : Inscription administrative d'un nouvel étudiant (création atomique compte utilisateur + mot de passe haché bcrypt + profil étudiant + initialisation compteur d'absences à 0h).
+- **RF-4.3.4** : Affectation pédagogique à une filière et vérification d'intégrité de l'existence des groupes de TD et TP assignés.
+- **RF-4.3.5** : Gestion et modification du cycle de vie académique via les statuts (`ACTIF`, `REDOUBLANT`, `DIPLOME`, `ABANDONNE`).
+- **RF-4.3.6** : Sécurisation de la radiation avec garde-fous stricts (interdiction de suppression si l'étudiant possède des notes ou des absences enregistrées).
+- **RF-4.3.7** : Contrôle d'accès strict (RBAC) : mutations (POST, PATCH, DELETE) strictement réservées aux administrateurs.
+- **RF-4.3.8** : Vitrine publique `/etudiants` permettant la consultation des listes de promotions par filière.
