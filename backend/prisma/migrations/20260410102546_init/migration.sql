@@ -111,10 +111,7 @@ CREATE TABLE "Absence" (
     "motifJustification" TEXT,
     "dateJustification" TIMESTAMP(3),
 
-    CONSTRAIN
-0 Files With Changes
-￼Review Changes
-T "Absence_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Absence_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
