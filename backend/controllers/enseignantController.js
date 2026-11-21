@@ -374,11 +374,6 @@ const createEnseignant = async (req, res) => {
     return res.status(400).json({ message: 'Format d\'adresse email invalide' });
   }
 
-  // Validation longueur mot de passe
-  if (password !== undefined && (typeof password !== 'string' || password.length < 6)) {
-    return res.status(400).json({ message: 'Le mot de passe doit comporter au moins 6 caractères' });
-  }
-
   try {
     // 1. Vérification unicité email
     const existingEmail = await prisma.utilisateur.findUnique({
@@ -402,7 +397,15 @@ const createEnseignant = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password || 'prof123', 10);
+    // 3. Validation mot de passe — obligatoire à la création
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, error: 'PASSWORD_REQUIRED', message: 'Le mot de passe est obligatoire pour créer un compte enseignant' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, error: 'PASSWORD_TOO_SHORT', message: 'Le mot de passe doit comporter au moins 6 caractères' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await prisma.$transaction(async (tx) => {
       // 1. Créer le compte Utilisateur
