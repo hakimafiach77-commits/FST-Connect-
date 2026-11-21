@@ -180,6 +180,11 @@ const createUtilisateur = async (req, res) => {
     }
 
     const defaultPass = role === 'admin' ? 'admin123' : (role === 'teacher' ? 'prof123' : 'student123');
+
+    if (motDePasse && motDePasse.trim() && motDePasse.trim().length < 6) {
+      return res.status(400).json({ message: 'Le mot de passe doit comporter au moins 6 caractères' });
+    }
+
     const rawPass = (motDePasse && motDePasse.trim()) ? motDePasse.trim() : defaultPass;
     const hashedPassword = await bcrypt.hash(rawPass, 10);
 
