@@ -1,5 +1,14 @@
 const prisma = require('../prismaClient');
 
+const parseIdStrict = (val) => {
+  if (val === undefined || val === null) return null;
+  const s = String(val).trim();
+  if (!/^\d+$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  if (n <= 0 || !Number.isSafeInteger(n)) return null;
+  return n;
+};
+
 /**
  * @desc    Get modules for the current user
  * @route   GET /api/modules
@@ -208,20 +217,79 @@ const updateModule = async (req, res) => {
 const deleteModule = async (req, res) => {
   const { id } = req.params;
 
+  const moduleId = parseIdStrict(id);
+  if (!moduleId) {
+    return res.status(400).json({
+      message: 'Identifiant de module invalide.',
+      code: 'INVALID_MODULE_ID'
+    });
+  }
+
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.affectation.deleteMany({ where: { idModule: parseInt(id) } });
-      await tx.seance.deleteMany({ where: { idModule: parseInt(id) } });
-      await tx.note.deleteMany({ where: { idModule: parseInt(id) } });
-      await tx.examen.deleteMany({ where: { idModule: parseInt(id) } });
-      await tx.document.deleteMany({ where: { idModule: parseInt(id) } });
-      await tx.module.delete({ where: { idModule: parseInt(id) } });
+      // 1. Verrouillage exclusif FOR UPDATE sur la ligne parente
+      const rows = await tx.$queryRaw`
+        SELECT "idModule" FROM "Module" WHERE "idModule" = ${moduleId} FOR UPDATE
+      `;
+      if (!rows || rows.length === 0) {
+        const err = new Error('MODULE_NOT_FOUND');
+        err.statusCode = 404;
+        throw err;
+      }
+
+      // 2. Compter toutes les dépendances académiques dans la transaction
+      const [notesCount, examensCount, seancesCount, affectationsCount, documentsCount] = await Promise.all([
+        tx.note.count({ where: { idModule: moduleId } }),
+        tx.examen.count({ where: { idModule: moduleId } }),
+        tx.seance.count({ where: { idModule: moduleId } }),
+        tx.affectation.count({ where: { idModule: moduleId } }),
+        tx.document.count({ where: { idModule: moduleId } })
+      ]);
+
+      if (notesCount > 0) {
+        const err = new Error('MODULE_HAS_NOTES');
+        err.detail = `Ce module possède ${notesCount} note(s). Supprimez-les d'abord.`;
+        throw err;
+      }
+      if (examensCount > 0) {
+        const err = new Error('MODULE_HAS_EXAMENS');
+        err.detail = `Ce module possède ${examensCount} examen(s). Supprimez-les d'abord.`;
+        throw err;
+      }
+      if (seancesCount > 0) {
+        const err = new Error('MODULE_HAS_SEANCES');
+        err.detail = `Ce module possède ${seancesCount} séance(s). Supprimez-les d'abord.`;
+        throw err;
+      }
+      if (affectationsCount > 0) {
+        const err = new Error('MODULE_HAS_AFFECTATIONS');
+        err.detail = `Ce module possède ${affectationsCount} affectation(s). Supprimez-les d'abord.`;
+        throw err;
+      }
+      if (documentsCount > 0) {
+        const err = new Error('MODULE_HAS_DOCUMENTS');
+        err.detail = `Ce module possède ${documentsCount} document(s). Supprimez-les d'abord.`;
+        throw err;
+      }
+
+      // 3. Suppression sécurisée : uniquement si aucun enregistrement enfant n'existe
+      await tx.module.delete({ where: { idModule: moduleId } });
     });
 
-    res.json({ status: 'success', message: 'Module deleted' });
+    res.json({ status: 'success', message: 'Module supprimé.' });
   } catch (error) {
+    if (error.message === 'MODULE_NOT_FOUND') {
+      return res.status(404).json({ message: 'Module introuvable.', code: 'MODULE_NOT_FOUND' });
+    }
+    if (['MODULE_HAS_NOTES','MODULE_HAS_EXAMENS','MODULE_HAS_SEANCES',
+         'MODULE_HAS_AFFECTATIONS','MODULE_HAS_DOCUMENTS'].includes(error.message)) {
+      return res.status(400).json({
+        message: error.detail || 'Suppression impossible : dépendances académiques existantes.',
+        code: error.message
+      });
+    }
     console.error('deleteModule error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
 

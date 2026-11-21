@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const { getGroupes, createGroupe, updateGroupe, deleteGroupe } = require('../controllers/groupeController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.get('/', protect, getGroupes);
-router.post('/', protect, createGroupe);
-router.patch('/:id', protect, updateGroupe);
-router.delete('/:id', protect, deleteGroupe);
+router.post('/', protect, authorize('admin'), createGroupe);
+router.patch('/:id', protect, authorize('admin'), updateGroupe);
+router.delete('/:id', protect, authorize('admin'), deleteGroupe);
 
 module.exports = router;

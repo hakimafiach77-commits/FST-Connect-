@@ -1,5 +1,14 @@
 const prisma = require('../prismaClient');
 
+const parseIdStrict = (val) => {
+  if (val === undefined || val === null) return null;
+  const s = String(val).trim();
+  if (!/^\d+$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  if (n <= 0 || !Number.isSafeInteger(n)) return null;
+  return n;
+};
+
 /**
  * @desc    Get all filieres with basic stats
  * @route   GET /api/filieres
@@ -100,29 +109,82 @@ const updateFiliere = async (req, res) => {
 const deleteFiliere = async (req, res) => {
   const { id } = req.params;
 
-  try {
-    // Check if students are enrolled
-    const studentCount = await prisma.etudiant.count({
-      where: { idFiliere: parseInt(id) }
+  const filiereId = parseIdStrict(id);
+  if (!filiereId) {
+    return res.status(400).json({
+      message: 'Identifiant de filière invalide.',
+      code: 'INVALID_FILIERE_ID'
     });
+  }
 
-    if (studentCount > 0) {
-      return res.status(400).json({ 
-        message: 'Cannot delete filiere with enrolled students' 
-      });
-    }
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Verrouillage exclusif FOR UPDATE sur la filière parente
+      const rows = await tx.$queryRaw`
+        SELECT "idFiliere" FROM "Filiere" WHERE "idFiliere" = ${filiereId} FOR UPDATE
+      `;
+      if (!rows || rows.length === 0) {
+        const err = new Error('FILIERE_NOT_FOUND');
+        err.statusCode = 404;
+        throw err;
+      }
 
-    await prisma.filiere.delete({
-      where: { idFiliere: parseInt(id) }
+      // 2. Compter toutes les dépendances dans la même transaction
+      const [studentsCount, modulesCount, groupesCount, documentsCount, edtsCount] = await Promise.all([
+        tx.etudiant.count({ where: { idFiliere: filiereId } }),
+        tx.module.count({ where: { idFiliere: filiereId } }),
+        tx.groupe.count({ where: { idFiliere: filiereId } }),
+        tx.document.count({ where: { idFiliere: filiereId } }),
+        tx.edt.count({ where: { idFiliere: filiereId } })
+      ]);
+
+      if (studentsCount > 0) {
+        const err = new Error('FILIERE_HAS_STUDENTS');
+        err.detail = `Cette filière possède ${studentsCount} étudiant(s) inscrit(s).`;
+        throw err;
+      }
+      if (modulesCount > 0) {
+        const err = new Error('FILIERE_HAS_MODULES');
+        err.detail = `Cette filière possède ${modulesCount} module(s) associé(s).`;
+        throw err;
+      }
+      if (groupesCount > 0) {
+        const err = new Error('FILIERE_HAS_GROUPES');
+        err.detail = `Cette filière possède ${groupesCount} groupe(s) associé(s).`;
+        throw err;
+      }
+      if (documentsCount > 0) {
+        const err = new Error('FILIERE_HAS_DOCUMENTS');
+        err.detail = `Cette filière possède ${documentsCount} document(s) associé(s).`;
+        throw err;
+      }
+      if (edtsCount > 0) {
+        const err = new Error('FILIERE_HAS_EDTS');
+        err.detail = `Cette filière possède ${edtsCount} emploi(s) du temps associé(s).`;
+        throw err;
+      }
+
+      // 3. Suppression sécurisée
+      await tx.filiere.delete({ where: { idFiliere: filiereId } });
     });
 
     res.json({
       status: 'success',
-      message: 'Filiere deleted'
+      message: 'Filière supprimée.'
     });
   } catch (error) {
+    if (error.message === 'FILIERE_NOT_FOUND') {
+      return res.status(404).json({ message: 'Filière introuvable.', code: 'FILIERE_NOT_FOUND' });
+    }
+    if (['FILIERE_HAS_STUDENTS','FILIERE_HAS_MODULES','FILIERE_HAS_GROUPES',
+         'FILIERE_HAS_DOCUMENTS','FILIERE_HAS_EDTS'].includes(error.message)) {
+      return res.status(400).json({
+        message: error.detail || 'Suppression impossible : dépendances existantes.',
+        code: error.message
+      });
+    }
     console.error('deleteFiliere error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
 
