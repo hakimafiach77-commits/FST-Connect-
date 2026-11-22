@@ -1,5 +1,14 @@
 const prisma = require('../prismaClient');
 
+const parseIdStrict = (val) => {
+  if (val === undefined || val === null) return null;
+  const s = String(val).trim();
+  if (!/^\d+$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  if (n <= 0 || !Number.isSafeInteger(n)) return null;
+  return n;
+};
+
 /**
  * @desc    Get all groups by filiere
  * @route   GET /api/groupes
@@ -73,18 +82,82 @@ const createGroupe = async (req, res) => {
 const deleteGroupe = async (req, res) => {
   const { id } = req.params;
 
+  const groupeId = parseIdStrict(id);
+  if (!groupeId) {
+    return res.status(400).json({
+      message: 'Identifiant de groupe invalide.',
+      code: 'INVALID_GROUPE_ID'
+    });
+  }
+
   try {
-    await prisma.groupe.delete({
-      where: { idGroupe: parseInt(id) }
+    await prisma.$transaction(async (tx) => {
+      // 1. Verrouillage exclusif FOR UPDATE sur le groupe parent
+      const rows = await tx.$queryRaw`
+        SELECT "idGroupe" FROM "Groupe" WHERE "idGroupe" = ${groupeId} FOR UPDATE
+      `;
+      if (!rows || rows.length === 0) {
+        const err = new Error('GROUPE_NOT_FOUND');
+        err.statusCode = 404;
+        throw err;
+      }
+
+      // 2. Compter toutes les dépendances dans la même transaction
+      const [tdCount, tpCount, projetCount, seancesCount, edtsCount] = await Promise.all([
+        tx.etudiant.count({ where: { idGroupeTD: groupeId } }),
+        tx.etudiant.count({ where: { idGroupeTP: groupeId } }),
+        tx.etudiant.count({ where: { idGroupeProjet: groupeId } }),
+        tx.seance.count({ where: { idGroupe: groupeId } }),
+        tx.edt.count({ where: { idGroupe: groupeId } })
+      ]);
+
+      if (tdCount > 0) {
+        const err = new Error('GROUPE_HAS_ETUDIANTS_TD');
+        err.detail = `Ce groupe possède ${tdCount} étudiant(s) en TD.`;
+        throw err;
+      }
+      if (tpCount > 0) {
+        const err = new Error('GROUPE_HAS_ETUDIANTS_TP');
+        err.detail = `Ce groupe possède ${tpCount} étudiant(s) en TP.`;
+        throw err;
+      }
+      if (projetCount > 0) {
+        const err = new Error('GROUPE_HAS_ETUDIANTS_PROJET');
+        err.detail = `Ce groupe possède ${projetCount} étudiant(s) en Projet.`;
+        throw err;
+      }
+      if (seancesCount > 0) {
+        const err = new Error('GROUPE_HAS_SEANCES');
+        err.detail = `Ce groupe possède ${seancesCount} séance(s) planifiée(s).`;
+        throw err;
+      }
+      if (edtsCount > 0) {
+        const err = new Error('GROUPE_HAS_EDTS');
+        err.detail = `Ce groupe possède ${edtsCount} emploi(s) du temps associé(s).`;
+        throw err;
+      }
+
+      // 3. Suppression sécurisée
+      await tx.groupe.delete({ where: { idGroupe: groupeId } });
     });
 
     res.json({
       status: 'success',
-      message: 'Group deleted'
+      message: 'Groupe supprimé.'
     });
   } catch (error) {
+    if (error.message === 'GROUPE_NOT_FOUND') {
+      return res.status(404).json({ message: 'Groupe introuvable.', code: 'GROUPE_NOT_FOUND' });
+    }
+    if (['GROUPE_HAS_ETUDIANTS_TD','GROUPE_HAS_ETUDIANTS_TP','GROUPE_HAS_ETUDIANTS_PROJET',
+         'GROUPE_HAS_SEANCES','GROUPE_HAS_EDTS'].includes(error.message)) {
+      return res.status(400).json({
+        message: error.detail || 'Suppression impossible : dépendances existantes.',
+        code: error.message
+      });
+    }
     console.error('deleteGroupe error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Erreur serveur.' });
   }
 };
 

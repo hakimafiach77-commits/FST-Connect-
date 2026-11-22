@@ -1,5 +1,16 @@
 const prisma = require('../prismaClient');
 
+const ALLOWED_DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+
+const parseIdStrict = (val) => {
+  if (val === undefined || val === null) return null;
+  const s = String(val).trim();
+  if (!/^\d+$/.test(s)) return null;
+  const n = parseInt(s, 10);
+  if (n <= 0 || !Number.isSafeInteger(n)) return null;
+  return n;
+};
+
 /**
  * @desc    Get user-specific schedule (EDT)
  * @route   GET /api/schedule/me
@@ -176,38 +187,116 @@ const updateSeance = async (req, res) => {
   const { id } = req.params;
   const { idModule, idEnseignant, idGroupe, idSalle, type, jour, heureDebut, heureFin, statut } = req.body;
 
+  // 1. Validation stricte de l'identifiant URL
+  const seanceId = parseIdStrict(id);
+  if (!seanceId) {
+    return res.status(400).json({
+      message: 'Identifiant de séance invalide.',
+      code: 'INVALID_SEANCE_ID'
+    });
+  }
+
+  // 2. Validation stricte du champ jour si fourni
+  let validatedJour;
+  if (jour !== undefined) {
+    if (typeof jour !== 'string' || !ALLOWED_DAYS.includes(jour.trim())) {
+      return res.status(400).json({
+        message: `Valeur du champ 'jour' invalide. Jours autorisés : ${ALLOWED_DAYS.join(', ')}.`,
+        code: 'INVALID_JOUR'
+      });
+    }
+    validatedJour = jour.trim();
+  }
+
+  // 3. Validation syntaxique stricte de chaque champ ID fourni dans le corps
+  let validatedModuleId;
+  if (idModule !== undefined) {
+    validatedModuleId = parseIdStrict(idModule);
+    if (!validatedModuleId) {
+      return res.status(400).json({ message: 'Identifiant idModule invalide.', code: 'INVALID_MODULE_ID' });
+    }
+  }
+
+  let validatedEnseignantId;
+  if (idEnseignant !== undefined) {
+    validatedEnseignantId = parseIdStrict(idEnseignant);
+    if (!validatedEnseignantId) {
+      return res.status(400).json({ message: 'Identifiant idEnseignant invalide.', code: 'INVALID_ENSEIGNANT_ID' });
+    }
+  }
+
+  let validatedGroupeId;
+  if (idGroupe !== undefined) {
+    validatedGroupeId = parseIdStrict(idGroupe);
+    if (!validatedGroupeId) {
+      return res.status(400).json({ message: 'Identifiant idGroupe invalide.', code: 'INVALID_GROUPE_ID' });
+    }
+  }
+
+  let validatedSalleId;
+  if (idSalle !== undefined) {
+    validatedSalleId = parseIdStrict(idSalle);
+    if (!validatedSalleId) {
+      return res.status(400).json({ message: 'Identifiant idSalle invalide.', code: 'INVALID_SALLE_ID' });
+    }
+  }
+
   try {
-    // 1. Check if seance exists
-    const existing = await prisma.seance.findUnique({ where: { idSeance: parseInt(id) } });
-    if (!existing) return res.status(404).json({ message: 'Séance introuvable' });
+    // 4. Vérifier l'existence de la séance
+    const existing = await prisma.seance.findUnique({ where: { idSeance: seanceId } });
+    if (!existing) return res.status(404).json({ message: 'Séance introuvable', code: 'SEANCE_NOT_FOUND' });
 
-    // 2. Validation Logic (ignore self in conflict check)
-    const teacherId = idEnseignant || existing.idEnseignant;
-    const salleId = idSalle || existing.idSalle;
-    const groupeId = idGroupe || existing.idGroupe;
-    const day = jour || existing.jour;
+    // 5. Vérification d'existence en base des entités référencées fournies
+    if (validatedModuleId !== undefined) {
+      const mod = await prisma.module.findUnique({ where: { idModule: validatedModuleId } });
+      if (!mod) return res.status(404).json({ message: 'Module introuvable.', code: 'MODULE_NOT_FOUND' });
+    }
+    if (validatedEnseignantId !== undefined) {
+      const ens = await prisma.enseignant.findUnique({ where: { idEnseignant: validatedEnseignantId } });
+      if (!ens) return res.status(404).json({ message: 'Enseignant introuvable.', code: 'ENSEIGNANT_NOT_FOUND' });
+    }
+    if (validatedGroupeId !== undefined) {
+      const grp = await prisma.groupe.findUnique({ where: { idGroupe: validatedGroupeId } });
+      if (!grp) return res.status(404).json({ message: 'Groupe introuvable.', code: 'GROUPE_NOT_FOUND' });
+    }
+    if (validatedSalleId !== undefined) {
+      const sal = await prisma.salle.findUnique({ where: { idSalle: validatedSalleId } });
+      if (!sal) return res.status(404).json({ message: 'Salle introuvable.', code: 'SALLE_NOT_FOUND' });
+    }
+
+    // 6. Résolution des valeurs effectives pour les vérifications de conflit
+    const teacherId = validatedEnseignantId !== undefined ? validatedEnseignantId : existing.idEnseignant;
+    const salleId   = validatedSalleId      !== undefined ? validatedSalleId      : existing.idSalle;
+    const groupeId  = validatedGroupeId     !== undefined ? validatedGroupeId     : existing.idGroupe;
+    const day   = validatedJour !== undefined ? validatedJour : existing.jour;
     const start = heureDebut || existing.heureDebut;
-    const end = heureFin || existing.heureFin;
+    const end   = heureFin   || existing.heureFin;
 
-    const teacherConflict = await checkOverlap(teacherId, 'teacher', day, start, end, id);
-    if (teacherConflict) return res.status(400).json({ message: 'Conflit: Enseignant déjà occupé' });
+    if (teacherId) {
+      const teacherConflict = await checkOverlap(teacherId, 'teacher', day, start, end, seanceId);
+      if (teacherConflict) return res.status(400).json({ message: 'Conflit: Enseignant déjà occupé', code: 'TEACHER_CONFLICT' });
+    }
 
-    const roomConflict = await checkOverlap(salleId, 'room', day, start, end, id);
-    if (roomConflict) return res.status(400).json({ message: 'Conflit: Salle déjà occupée' });
+    if (salleId) {
+      const roomConflict = await checkOverlap(salleId, 'room', day, start, end, seanceId);
+      if (roomConflict) return res.status(400).json({ message: 'Conflit: Salle déjà occupée', code: 'ROOM_CONFLICT' });
+    }
 
-    const groupConflict = await checkOverlap(groupeId, 'group', day, start, end, id);
-    if (groupConflict) return res.status(400).json({ message: 'Conflit: Groupe déjà occupé' });
+    if (groupeId) {
+      const groupConflict = await checkOverlap(groupeId, 'group', day, start, end, seanceId);
+      if (groupConflict) return res.status(400).json({ message: 'Conflit: Groupe déjà occupé', code: 'GROUP_CONFLICT' });
+    }
 
-    // 3. Update
+    // 7. Mise à jour de la séance
     const seance = await prisma.seance.update({
-      where: { idSeance: parseInt(id) },
+      where: { idSeance: seanceId },
       data: {
-        idModule: idModule ? parseInt(idModule) : undefined,
-        idEnseignant: idEnseignant ? parseInt(idEnseignant) : undefined,
-        idGroupe: idGroupe ? parseInt(idGroupe) : undefined,
-        idSalle: idSalle ? parseInt(idSalle) : undefined,
+        idModule:     validatedModuleId,
+        idEnseignant: validatedEnseignantId,
+        idGroupe:     validatedGroupeId,
+        idSalle:      validatedSalleId,
         type,
-        jour: jour ? parseInt(jour) : undefined,
+        jour: validatedJour,
         heureDebut,
         heureFin,
         statut
@@ -216,8 +305,11 @@ const updateSeance = async (req, res) => {
 
     res.json({ status: 'success', data: seance });
   } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(400).json({ message: 'Référence de clé étrangère invalide.', code: 'FOREIGN_KEY_VIOLATION' });
+    }
     console.error('updateSeance error:', error);
-    res.status(500).json({ message: 'Server error during update' });
+    res.status(500).json({ message: 'Erreur serveur lors de la mise à jour.' });
   }
 };
 
