@@ -13,7 +13,8 @@ Ce dossier regroupe l'ensemble des **suites de tests exécutables**, des **proc�
 | **4.6** | **Gestion des enseignants** | [`tests-gestion-enseignants.mjs`](./tests-gestion-enseignants.mjs) | [PV 4.6 Enseignants](./test-report-4.6-gestion-enseignants.md) | 41 / 41 | **VALIDÉ (100%)** ✅ |
 | **4.13** | **Filières, groupes & années** | [`tests-filieres-groupes.mjs`](./tests-filieres-groupes.mjs) | [PV 4.13 Filières](./test-report-4.13-filieres-groupes.md) | 44 / 44 | **VALIDÉ (100%)** ✅ |
 | **4.15** | **Examens et notes** | [`tests-examens-notes.mjs`](./tests-examens-notes.mjs) | [PV 4.15 Examens](./test-report-4.15-examens-notes.md) | 55 / 55 | **VALIDÉ (100%)** ✅ |
-| **TOTAL** | **Modules Recettés** | — | — | **211 / 211** | **100% SUCCÈS** 🎉 |
+| **4.8** | **Emplois du temps** | [`tests-emplois-du-temps.mjs`](./tests-emplois-du-temps.mjs) | [PV 4.8 EDT](./test-report-4.8-emplois-du-temps.md) | 59 / 59 | **VALIDÉ (100%)** ✅ |
+| **TOTAL** | **Modules Recettés** | — | — | **270 / 270** | **100% SUCCÈS** 🎉 |
 
 ---
 

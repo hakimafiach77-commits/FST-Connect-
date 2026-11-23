@@ -61,3 +61,12 @@
 - **RF-4.15.8** : Système de réclamation avec vérification d'appartenance de la note à l'étudiant et statut initial `OUVERTE`.
 - **RF-4.15.9** : Règle métier RG58 (délai légal de recours J+7) et règle métier RG50 (statuts de validation `VALIDÉ`, `RATTRAPAGE`, `AJOURNÉ`).
 - **RF-4.15.10** : Console administrative d'arbitrage des réclamations avec ajustement réactif de la note en cas de validation.
+
+### 4.8 Emplois du Temps & Planification (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.8.1** : Planification et gestion dynamique des séances d'enseignement (type Cours, TD, TP, Examen, jour, heure début/fin, salle, module, groupe, enseignant).
+- **RF-4.8.2** : Algorithme prédictif de détection des chevauchements horaires (`checkOverlap`) interdisant les conflits enseignants, les doubles réservations de salles et les superpositions de cours pour les groupes étudiants.
+- **RF-4.8.3** : Consultation personnalisée du planning (`/api/schedule/me`) s'adaptant automatiquement au profil de l'utilisateur (étudiant : ses groupes TD/TP ; enseignant : ses affectations ; administrateur : vue globale).
+- **RF-4.8.4** : Contrôle d'accès strict (RBAC) réservant la création, modification et suppression des séances aux administrateurs.
+- **RF-4.8.5** : Espace enseignant (`MonPlanning.jsx`) avec navigation temporelle par semaine et déclenchement direct de la feuille d'appel numérique en séance.
+- **RF-4.8.6** : Interface étudiant (`EmploiDuTemps.jsx`) affichant l'emploi du temps hebdomadaire avec différenciation chromatique par type d'enseignement et export PDF.
+- **RF-4.8.7** : Vitrine publique (`/edt`) permettant aux visiteurs, étudiants et candidats de consulter et télécharger les emplois du temps officiels par filière.
