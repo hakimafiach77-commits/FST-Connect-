@@ -30,3 +30,13 @@
 - **RF-4.3.6** : Sécurisation de la radiation avec garde-fous stricts (interdiction de suppression si l'étudiant possède des notes ou des absences enregistrées).
 - **RF-4.3.7** : Contrôle d'accès strict (RBAC) : mutations (POST, PATCH, DELETE) strictement réservées aux administrateurs.
 - **RF-4.3.8** : Vitrine publique `/etudiants` permettant la consultation des listes de promotions par filière.
+
+### 4.6 Gestion des Enseignants & Affectations (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.6.1** : Annuaire complet et filtrable des enseignants avec recherche multi-critères (nom, prénom, email, matricule, grade, spécialité).
+- **RF-4.6.2** : Création administrative atomique d'un enseignant (création compte `Utilisateur` rôle `teacher` + profil `Enseignant` avec matricule unique et mot de passe sécurisé haché bcrypt).
+- **RF-4.6.3** : Gestion et modification des données professionnelles (grade, spécialité, type permanent/vacataire, volume horaire de base).
+- **RF-4.6.4** : Gestion du statut enseignant (`ACTIF`, `INACTIF`, `BLOQUE`) avec synchronisation conjointe du compte utilisateur.
+- **RF-4.6.5** : Garde-fous stricts d'intégrité référentielle et verrouillage concurrence (`FOR UPDATE`) empêchant la suppression si l'enseignant possède des séances planifiées, des responsabilités de modules/groupes, des affectations actives ou des encadrements PFE.
+- **RF-4.6.6** : Gestion des affectations pédagogiques (attribution et retrait d'interventions CM, TD, TP par module avec calcul des heures).
+- **RF-4.6.7** : Espace personnel enseignant (`/api/enseignants/me`) permettant la consultation de son planning, de ses modules assignés et la mise à jour de ses coordonnées / mot de passe.
+- **RF-4.6.8** : Contrôle d'accès strict (RBAC) protégeant les opérations d'administration contre les accès non autorisés.

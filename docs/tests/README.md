@@ -10,7 +10,8 @@ Ce dossier regroupe l'ensemble des **suites de tests exécutables**, des **proc�
 |---|---|---|---|:---:|:---:|
 | **4.1** | **Portail d'accueil** | [`tests-portail-accueil.mjs`](./tests-portail-accueil.mjs) | [PV 4.1 Portail](./test-report-4.1-portail-accueil.md) | 33 / 33 | **VALIDÉ (100%)** ✅ |
 | **4.3** | **Gestion des étudiants** | [`tests-gestion-etudiants.mjs`](./tests-gestion-etudiants.mjs) | [PV 4.3 Étudiants](./test-report-4.3-gestion-etudiants.md) | 38 / 38 | **VALIDÉ (100%)** ✅ |
-| **TOTAL** | **Modules Recettés** | — | — | **71 / 71** | **100% SUCCÈS** 🎉 |
+| **4.6** | **Gestion des enseignants** | [`tests-gestion-enseignants.mjs`](./tests-gestion-enseignants.mjs) | [PV 4.6 Enseignants](./test-report-4.6-gestion-enseignants.md) | 41 / 41 | **VALIDÉ (100%)** ✅ |
+| **TOTAL** | **Modules Recettés** | — | — | **112 / 112** | **100% SUCCÈS** 🎉 |
 
 ---
 
@@ -19,7 +20,7 @@ Ce dossier regroupe l'ensemble des **suites de tests exécutables**, des **proc�
 Depuis la racine du projet :
 
 ```bash
-# 1. Lancer l'intégralité des suites de tests (71 tests) :
+# 1. Lancer l'intégralité des suites de tests (112 tests) :
 npm test
 # ou directement :
 node docs/tests/run-all-tests.mjs
@@ -29,6 +30,9 @@ node docs/tests/tests-portail-accueil.mjs
 
 # 3. Lancer spécifiquement la suite 4.3 (Gestion des étudiants) :
 node docs/tests/tests-gestion-etudiants.mjs
+
+# 4. Lancer spécifiquement la suite 4.6 (Gestion des enseignants) :
+node docs/tests/tests-gestion-enseignants.mjs
 ```
 
 ---
@@ -36,8 +40,9 @@ node docs/tests/tests-gestion-etudiants.mjs
 ## 📂 Contenu du Dossier
 
 * **`run-all-tests.mjs`** : Lanceur global de l'ensemble des suites de tests QA.
-* **`tests-portail-accueil.mjs`** : Suite de tests automatisée pour la carte 4.1 (routage, vitrine, responsive, FAQ, redirections).
-* **`tests-gestion-etudiants.mjs`** : Suite de tests automatisée pour la carte 4.3 (API REST, transactions atomiques, sécurité RBAC, filtres et interface d'administration).
+* **`tests-portail-accueil.mjs`** : Suite de tests automatisée pour la carte 4.1 (33 tests).
+* **`tests-gestion-etudiants.mjs`** : Suite de tests automatisée pour la carte 4.3 (38 tests).
+* **`tests-gestion-enseignants.mjs`** : Suite de tests automatisée pour la carte 4.6 (41 tests).
 * **`test-report-4.1-portail-accueil.md`** : Procès-Verbal de recette officiel de la carte 4.1.
 * **`test-report-4.3-gestion-etudiants.md`** : Procès-Verbal de recette officiel de la carte 4.3.
-
+* **`test-report-4.6-gestion-enseignants.md`** : Procès-Verbal de recette officiel de la carte 4.6.

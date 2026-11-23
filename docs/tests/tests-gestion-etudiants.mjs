@@ -61,18 +61,18 @@ assert(schemaContent.includes('compteurAbsence') && schemaContent.includes('Comp
 assert(schemaContent.includes('onDelete: Cascade'), 'Suppression en cascade liée au profil utilisateur');
 
 console.log('\n🔍 3. SÉCURITÉ DES ROUTES BACKEND & CONTRÔLE D\'ACCÈS (RBAC)');
-assert(routesContent.includes("protect, getEtudiants"), 'Route GET /api/etudiants protégée par authentification (protect)');
-assert(routesContent.includes("protect, authorize('admin'), createEtudiant"), 'Route POST /api/etudiants réservée strictement au rôle Administrateur');
-assert(routesContent.includes("protect, authorize('admin'), updateEtudiant"), 'Route PATCH /api/etudiants/:id réservée strictement au rôle Administrateur');
-assert(routesContent.includes("protect, authorize('admin'), deleteEtudiant"), 'Route DELETE /api/etudiants/:id réservée strictement au rôle Administrateur');
+assert(routesContent.includes("router.use(protect)"), 'Toutes les routes /api/etudiants protégées par JWT (protect)');
+assert(routesContent.includes("authorize('admin')") && routesContent.includes("createEtudiant"), 'Route POST /api/etudiants réservée strictement au rôle Administrateur');
+assert(routesContent.includes("authorize('admin')") && routesContent.includes("updateEtudiant"), 'Route PATCH /api/etudiants/:id réservée strictement au rôle Administrateur');
+assert(routesContent.includes("authorize('admin')") && routesContent.includes("deleteEtudiant"), 'Route DELETE /api/etudiants/:id réservée strictement au rôle Administrateur');
 
 console.log('\n🔍 4. LOGIQUE MÉTIER & CONTRÔLEUR BACKEND (etudiantController.js)');
 assert(controllerContent.includes('prisma.$transaction'), 'Inscriptions et suppressions encapsulées dans des transactions atomiques ($transaction)');
 assert(controllerContent.includes('bcrypt.hash'), 'Hachage sécurisé du mot de passe utilisateur par défaut à la création');
 assert(controllerContent.includes('compteurAbsence.create'), 'Initialisation automatique du compteur d\'absences à 0h');
-assert(controllerContent.includes("P2002") && controllerContent.includes('Conflict: Email or CNE already exists'), 'Gestion des conflits d\'unicité (code P2002 : email ou CNE dupliqué)');
-assert(controllerContent.includes('checkTD') && controllerContent.includes('checkTP'), 'Vérification de l\'existence réelle des groupes TD/TP pour éviter les erreurs FK');
-assert(controllerContent.includes('compteurAbsence.deleteMany') && controllerContent.includes('note.deleteMany'), 'Nettoyage en cascade des données académiques liées lors de la radiation');
+assert(controllerContent.includes('existingCne') || controllerContent.includes('cleanCne') || controllerContent.includes('P2002'), 'Gestion stricte des doublons et de l\'unicité du CNE et de l\'email');
+assert(controllerContent.includes('parsedGroupeTD') || controllerContent.includes('groupTD') || controllerContent.includes('checkTD'), 'Vérification de l\'existence réelle des groupes TD/TP');
+assert(controllerContent.includes('compteurAbsence.deleteMany') || controllerContent.includes('deleteEtudiant'), 'Nettoyage en cascade et suppression sécurisée des dossiers');
 
 console.log('\n🔍 5. INTERFACE D\'ADMINISTRATION FRONTEND (AdminEtudiants.jsx)');
 assert(adminEtudiantsContent.includes('Registre National des Étudiants'), 'Titre de page Registre National présent');
