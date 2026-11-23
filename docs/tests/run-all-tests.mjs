@@ -12,7 +12,8 @@ console.log('################################################################\n'
 const testSuites = [
   { name: '4.1 Portail d\'accueil', script: path.join(__dirname, 'tests-portail-accueil.mjs') },
   { name: '4.3 Gestion des étudiants', script: path.join(__dirname, 'tests-gestion-etudiants.mjs') },
-  { name: '4.6 Gestion des enseignants', script: path.join(__dirname, 'tests-gestion-enseignants.mjs') }
+  { name: '4.6 Gestion des enseignants', script: path.join(__dirname, 'tests-gestion-enseignants.mjs') },
+  { name: '4.13 Filières, groupes et années', script: path.join(__dirname, 'tests-filieres-groupes.mjs') }
 ];
 
 let globalStatus = 0;

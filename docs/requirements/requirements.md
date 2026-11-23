@@ -40,3 +40,12 @@
 - **RF-4.6.6** : Gestion des affectations pédagogiques (attribution et retrait d'interventions CM, TD, TP par module avec calcul des heures).
 - **RF-4.6.7** : Espace personnel enseignant (`/api/enseignants/me`) permettant la consultation de son planning, de ses modules assignés et la mise à jour de ses coordonnées / mot de passe.
 - **RF-4.6.8** : Contrôle d'accès strict (RBAC) protégeant les opérations d'administration contre les accès non autorisés.
+
+### 4.13 Filières, Groupes & Années Universitaires (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.13.1** : Configuration des filières académiques (code unique, intitulé, durée en années, cycle d'étude, nombre de semestres).
+- **RF-4.13.2** : Création et gestion des structures de groupes pédagogiques (types TD, TP et Projet avec capacité d'accueil maximale).
+- **RF-4.13.3** : Gestion de l'année universitaire et association d'enseignants responsables aux groupes.
+- **RF-4.13.4** : Protection d'intégrité référentielle interdisant la suppression d'une filière avec étudiants, modules, groupes, documents ou EDTs rattachés.
+- **RF-4.13.5** : Protection d'intégrité référentielle interdisant la suppression d'un groupe avec étudiants (TD/TP/Projet) ou séances planifiées.
+- **RF-4.13.6** : Dashboard administratif réactif permettant la consultation en temps réel des effectifs par filière et la configuration par tiroirs coulissants.
+- **RF-4.13.7** : Vitrine publique des formations accessible aux candidats et visiteurs.
