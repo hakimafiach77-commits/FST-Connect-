@@ -49,3 +49,15 @@
 - **RF-4.13.5** : Protection d'intégrité référentielle interdisant la suppression d'un groupe avec étudiants (TD/TP/Projet) ou séances planifiées.
 - **RF-4.13.6** : Dashboard administratif réactif permettant la consultation en temps réel des effectifs par filière et la configuration par tiroirs coulissants.
 - **RF-4.13.7** : Vitrine publique des formations accessible aux candidats et visiteurs.
+
+### 4.15 Examens et Notes (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.15.1** : Planification et gestion des épreuves d'examens (CC, EF, Rattrapage, date, heure, salle, module).
+- **RF-4.15.2** : Contrôle RBAC strict autorisant la gestion des examens aux administrateurs et enseignants affectés aux modules concernés (`isTeacherAssignedToModule`).
+- **RF-4.15.3** : Protection anti-fuite étudiante limitant la consultation du calendrier d'examens aux seuls modules de la filière de l'étudiant connecté.
+- **RF-4.15.4** : Garde-fou d'intégrité interdisant la suppression d'un examen ayant des notes associées (`EXAMEN_HAS_NOTES`).
+- **RF-4.15.5** : Saisie individuelle et par lot (bulk) des notes de contrôle continu (CC) et d'examen final (EF) par les enseignants.
+- **RF-4.15.6** : Calcul automatique de la moyenne modulaire basé sur les coefficients paramétrés (`coeffCC`, `coeffEF`).
+- **RF-4.15.7** : Gestion du verrouillage et de la publication des notes (`estVerrouillee`) garantissant la non-divulgation des brouillons.
+- **RF-4.15.8** : Système de réclamation avec vérification d'appartenance de la note à l'étudiant et statut initial `OUVERTE`.
+- **RF-4.15.9** : Règle métier RG58 (délai légal de recours J+7) et règle métier RG50 (statuts de validation `VALIDÉ`, `RATTRAPAGE`, `AJOURNÉ`).
+- **RF-4.15.10** : Console administrative d'arbitrage des réclamations avec ajustement réactif de la note en cas de validation.
