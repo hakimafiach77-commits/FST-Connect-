@@ -78,3 +78,46 @@
 - **RF-4.10.4** : Gestion des supports et ressources documentaires par les enseignants et administrateurs (titre, type cours/TD/TP/devoir, fichier joint, horodatage).
 - **RF-4.10.5** : Sécurité Anti-IDOR garantissant que seul l'auteur du document ou un administrateur peut modifier ou supprimer une ressource pédagogique.
 - **RF-4.10.6** : Interface étudiant en lecture seule stricte (règle RG32) avec consultation et téléchargement des supports par typologie chromatique.
+
+### 4.9 Communication & Notifications (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.9.1** : Publication d'annonces administratives ciblées (`tous`, `enseignants`, `etudiants`) avec gestion des alertes urgentes.
+- **RF-4.9.2** : Système de notifications individuelles en temps réel avec marquage lu/non-lu et protection stricte de propriété.
+
+### 4.11 Absences & Justificatifs (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.11.1** : Saisie de la feuille d'appel numérique par les enseignants avec calcul automatique de la durée des séances.
+- **RF-4.11.2** : Synchronisation transactionnelle atomique avec le compteur d'absences cumulées de chaque étudiant.
+- **RF-4.11.3** : Soumission de justificatifs par les étudiants dans la limite de 5 MB et circuit de validation administratif.
+
+### 4.17 Réclamations & Recours (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.17.1** : Dépôt de réclamation sur note avec vérification anti-usurpation d'identité étudiante.
+- **RF-4.17.2** : Console d'arbitrage administrative permettant la validation/rejet et l'ajustement direct de la note contestée.
+
+### 4.4 Projets de Fin d'Études - PFE (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.4.1** : Proposition de sujet de PFE par l'étudiant avec garde-fou anti-doublon (`PFE_ALREADY_EXISTS`).
+- **RF-4.4.2** : Affectation officielle de l'enseignant encadrant et constitution des jurys de soutenance.
+- **RF-4.4.3** : Notation finale et enregistrement de l'avis motivé de l'encadrant.
+
+### 4.5 Stages & Conventions (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.5.1** : Demande de convention de stage avec validation chronologique des dates (`dateFin >= dateDebut`).
+- **RF-4.5.2** : Cycle de vie administratif des conventions (`SOLICITEE`, `VALIDEE`, `REFUSEE`, `CONVENTION_SIGNEE`, `TERMINEE`).
+
+### 4.7 Affectations & Charges Horaires (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.7.1** : Gestion des interventions pédagogiques (CM, TD, TP) et suivi du volume horaire par rapport au statut de base.
+- **RF-4.7.2** : Attribution automatique des heures de cours magistraux au responsable de module.
+
+### 4.16 Délibérations & Résultats (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.16.1** : Moteur de calcul des moyennes modulaires pondérées et délibérations semestrielles.
+- **RF-4.16.2** : Attribution automatique des mentions officielles (`VALIDÉ`, `RATTRAPAGE`, `AJOURNÉ`).
+
+### 4.12 Salles & Ressources Matérielles (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.12.1** : Inventaire des locaux (cours, TP, TD, amphi) avec capacité maximale et état de disponibilité.
+- **RF-4.12.2** : Blocage de suppression si la salle possède des séances de cours ou examens planifiés.
+
+### 4.19 Formations Continues (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.19.1** : Catalogue des formations certifiantes ouvertes et gestion des inscriptions partenaires industriels.
+
+### 4.14 Tableaux de Bord & Statistiques (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.14.1** : Moteur analytique multi-profils calculant en temps réel les indicateurs clés pour chaque rôle.
+
+### 4.18 Clubs Étudiants & Vie Associative (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.18.1** : Vitrine publique des associations étudiantes et module d'adhésion en direct pour les étudiants inscrits.
