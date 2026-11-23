@@ -1,6 +1,7 @@
 const prisma = require('../prismaClient');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -337,7 +338,152 @@ const getMe = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Request a password reset token
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || typeof email !== 'string' || !email.trim()) {
+    return res.status(400).json({ success: false, error: 'EMAIL_REQUIRED', message: 'L\'adresse email est requise.' });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ success: false, error: 'INVALID_EMAIL', message: 'Format d\'adresse email invalide.' });
+  }
+
+  try {
+    const user = await prisma.utilisateur.findUnique({
+      where: { email: cleanEmail }
+    });
+
+    // Réponse générique pour éviter l'énumération des comptes
+    const genericResponse = {
+      success: true,
+      message: 'Si un compte actif existe avec cette adresse email, un jeton de réinitialisation a été généré.'
+    };
+
+    if (!user || user.statut !== 'ACTIF') {
+      return res.json(genericResponse);
+    }
+
+    // 1. Invalider les anciens jetons actifs pour cet utilisateur
+    await prisma.tokenReinit.updateMany({
+      where: { utilisateurId: user.id, statut: 'ACTIF' },
+      data: { statut: 'EXPIRE' }
+    });
+
+    // 2. Générer un jeton cryptographique sécurisé
+    const tokenValue = crypto.randomBytes(32).toString('hex');
+    const expirationDate = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+
+    // 3. Persister dans la table TokenReinit
+    await prisma.tokenReinit.create({
+      data: {
+        utilisateurId: user.id,
+        valeur: tokenValue,
+        dateExpiration: expirationDate,
+        statut: 'ACTIF'
+      }
+    });
+
+    // En environnement de dev/test ou API interne, retourner le jeton pour faciliter l'automatisation sans SMTP
+    if (process.env.NODE_ENV !== 'production') {
+      return res.json({
+        ...genericResponse,
+        token: tokenValue,
+        expiresIn: '1 hour'
+      });
+    }
+
+    return res.json(genericResponse);
+  } catch (error) {
+    console.error('forgotPassword error:', error);
+    return res.status(500).json({ message: 'Erreur lors du traitement de la demande de réinitialisation.' });
+  }
+};
+
+/**
+ * @desc    Reset password using a valid token
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || typeof token !== 'string' || !token.trim()) {
+    return res.status(400).json({ success: false, error: 'TOKEN_REQUIRED', message: 'Le jeton de réinitialisation est obligatoire.' });
+  }
+
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 6) {
+    return res.status(400).json({
+      success: false,
+      error: 'INVALID_PASSWORD',
+      message: 'Le nouveau mot de passe est obligatoire et doit comporter au moins 6 caractères.'
+    });
+  }
+
+  try {
+    const tokenRecord = await prisma.tokenReinit.findUnique({
+      where: { valeur: token.trim() },
+      include: { utilisateur: true }
+    });
+
+    if (!tokenRecord || tokenRecord.statut !== 'ACTIF' || new Date(tokenRecord.dateExpiration) <= new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_OR_EXPIRED_TOKEN',
+        message: 'Le jeton de réinitialisation est invalide, expiré ou a déjà été utilisé.'
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Mettre à jour le mot de passe et réinitialiser les compteurs
+      await tx.utilisateur.update({
+        where: { id: tokenRecord.utilisateurId },
+        data: {
+          motDePasse: hashedPassword,
+          compteurTentatives: 0,
+          bloqueJusquA: null,
+          statut: 'ACTIF'
+        }
+      });
+
+      // 2. Marquer le jeton comme utilisé
+      await tx.tokenReinit.update({
+        where: { id: tokenRecord.id },
+        data: { statut: 'UTILISE' }
+      });
+
+      // 3. Logger dans l'historique des connexions
+      await tx.historiqueConnexion.create({
+        data: {
+          utilisateurId: tokenRecord.utilisateurId,
+          statut: 'SUCCES',
+          adresseIP: getClientIp(req),
+          resultat: 'Réinitialisation du mot de passe réussie via jeton'
+        }
+      });
+    });
+
+    return res.json({
+      success: true,
+      message: 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.'
+    });
+  } catch (error) {
+    console.error('resetPassword error:', error);
+    return res.status(500).json({ message: 'Erreur serveur lors de la réinitialisation du mot de passe.' });
+  }
+};
+
 module.exports = {
   login,
-  getMe
+  getMe,
+  forgotPassword,
+  resetPassword
 };
