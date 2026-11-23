@@ -24,6 +24,7 @@ const documentRoutes = require('./routes/documentRoutes');
 const syncRoutes = require('./routes/syncRoutes');
 const salleRoutes = require('./routes/salleRoutes');
 const utilisateurRoutes = require('./routes/utilisateurRoutes');
+const examenRoutes = require('./routes/examenRoutes');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -73,6 +74,7 @@ app.use('/api/groupes', groupeRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/salles', salleRoutes);
 app.use('/api/utilisateurs', utilisateurRoutes);
+app.use('/api/examens', examenRoutes);
 
 // ── TEST ENDPOINT ──
 app.get('/api/status', async (req, res) => {

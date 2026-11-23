@@ -30,3 +30,94 @@
 - **RF-4.3.6** : Sécurisation de la radiation avec garde-fous stricts (interdiction de suppression si l'étudiant possède des notes ou des absences enregistrées).
 - **RF-4.3.7** : Contrôle d'accès strict (RBAC) : mutations (POST, PATCH, DELETE) strictement réservées aux administrateurs.
 - **RF-4.3.8** : Vitrine publique `/etudiants` permettant la consultation des listes de promotions par filière.
+
+### 4.6 Gestion des Enseignants & Affectations (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.6.1** : Annuaire complet et filtrable des enseignants avec recherche multi-critères (nom, prénom, email, matricule, grade, spécialité).
+- **RF-4.6.2** : Création administrative atomique d'un enseignant (création compte `Utilisateur` rôle `teacher` + profil `Enseignant` avec matricule unique et mot de passe sécurisé haché bcrypt).
+- **RF-4.6.3** : Gestion et modification des données professionnelles (grade, spécialité, type permanent/vacataire, volume horaire de base).
+- **RF-4.6.4** : Gestion du statut enseignant (`ACTIF`, `INACTIF`, `BLOQUE`) avec synchronisation conjointe du compte utilisateur.
+- **RF-4.6.5** : Garde-fous stricts d'intégrité référentielle et verrouillage concurrence (`FOR UPDATE`) empêchant la suppression si l'enseignant possède des séances planifiées, des responsabilités de modules/groupes, des affectations actives ou des encadrements PFE.
+- **RF-4.6.6** : Gestion des affectations pédagogiques (attribution et retrait d'interventions CM, TD, TP par module avec calcul des heures).
+- **RF-4.6.7** : Espace personnel enseignant (`/api/enseignants/me`) permettant la consultation de son planning, de ses modules assignés et la mise à jour de ses coordonnées / mot de passe.
+- **RF-4.6.8** : Contrôle d'accès strict (RBAC) protégeant les opérations d'administration contre les accès non autorisés.
+
+### 4.13 Filières, Groupes & Années Universitaires (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.13.1** : Configuration des filières académiques (code unique, intitulé, durée en années, cycle d'étude, nombre de semestres).
+- **RF-4.13.2** : Création et gestion des structures de groupes pédagogiques (types TD, TP et Projet avec capacité d'accueil maximale).
+- **RF-4.13.3** : Gestion de l'année universitaire et association d'enseignants responsables aux groupes.
+- **RF-4.13.4** : Protection d'intégrité référentielle interdisant la suppression d'une filière avec étudiants, modules, groupes, documents ou EDTs rattachés.
+- **RF-4.13.5** : Protection d'intégrité référentielle interdisant la suppression d'un groupe avec étudiants (TD/TP/Projet) ou séances planifiées.
+- **RF-4.13.6** : Dashboard administratif réactif permettant la consultation en temps réel des effectifs par filière et la configuration par tiroirs coulissants.
+- **RF-4.13.7** : Vitrine publique des formations accessible aux candidats et visiteurs.
+
+### 4.15 Examens et Notes (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.15.1** : Planification et gestion des épreuves d'examens (CC, EF, Rattrapage, date, heure, salle, module).
+- **RF-4.15.2** : Contrôle RBAC strict autorisant la gestion des examens aux administrateurs et enseignants affectés aux modules concernés (`isTeacherAssignedToModule`).
+- **RF-4.15.3** : Protection anti-fuite étudiante limitant la consultation du calendrier d'examens aux seuls modules de la filière de l'étudiant connecté.
+- **RF-4.15.4** : Garde-fou d'intégrité interdisant la suppression d'un examen ayant des notes associées (`EXAMEN_HAS_NOTES`).
+- **RF-4.15.5** : Saisie individuelle et par lot (bulk) des notes de contrôle continu (CC) et d'examen final (EF) par les enseignants.
+- **RF-4.15.6** : Calcul automatique de la moyenne modulaire basé sur les coefficients paramétrés (`coeffCC`, `coeffEF`).
+- **RF-4.15.7** : Gestion du verrouillage et de la publication des notes (`estVerrouillee`) garantissant la non-divulgation des brouillons.
+- **RF-4.15.8** : Système de réclamation avec vérification d'appartenance de la note à l'étudiant et statut initial `OUVERTE`.
+- **RF-4.15.9** : Règle métier RG58 (délai légal de recours J+7) et règle métier RG50 (statuts de validation `VALIDÉ`, `RATTRAPAGE`, `AJOURNÉ`).
+- **RF-4.15.10** : Console administrative d'arbitrage des réclamations avec ajustement réactif de la note en cas de validation.
+
+### 4.8 Emplois du Temps & Planification (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.8.1** : Planification et gestion dynamique des séances d'enseignement (type Cours, TD, TP, Examen, jour, heure début/fin, salle, module, groupe, enseignant).
+- **RF-4.8.2** : Algorithme prédictif de détection des chevauchements horaires (`checkOverlap`) interdisant les conflits enseignants, les doubles réservations de salles et les superpositions de cours pour les groupes étudiants.
+- **RF-4.8.3** : Consultation personnalisée du planning (`/api/schedule/me`) s'adaptant automatiquement au profil de l'utilisateur (étudiant : ses groupes TD/TP ; enseignant : ses affectations ; administrateur : vue globale).
+- **RF-4.8.4** : Contrôle d'accès strict (RBAC) réservant la création, modification et suppression des séances aux administrateurs.
+- **RF-4.8.5** : Espace enseignant (`MonPlanning.jsx`) avec navigation temporelle par semaine et déclenchement direct de la feuille d'appel numérique en séance.
+- **RF-4.8.6** : Interface étudiant (`EmploiDuTemps.jsx`) affichant l'emploi du temps hebdomadaire avec différenciation chromatique par type d'enseignement et export PDF.
+- **RF-4.8.7** : Vitrine publique (`/edt`) permettant aux visiteurs, étudiants et candidats de consulter et télécharger les emplois du temps officiels par filière.
+
+### 4.10 Modules Pédagogiques & Documents (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.10.1** : Configuration des modules d'enseignement (code unique, intitulé, coefficient, semestre, filière de rattachement, responsable pédagogique).
+- **RF-4.10.2** : Affichage contextuel des modules selon le profil de l'utilisateur (étudiant : modules de sa filière ; enseignant : modules affectés ; administrateur : catalogue complet).
+- **RF-4.10.3** : Protection transactionnelle `FOR UPDATE` interdisant la suppression d'un module possédant des dépendances académiques (`MODULE_HAS_NOTES`, `MODULE_HAS_EXAMENS`, `MODULE_HAS_SEANCES`, `MODULE_HAS_AFFECTATIONS`, `MODULE_HAS_DOCUMENTS`).
+- **RF-4.10.4** : Gestion des supports et ressources documentaires par les enseignants et administrateurs (titre, type cours/TD/TP/devoir, fichier joint, horodatage).
+- **RF-4.10.5** : Sécurité Anti-IDOR garantissant que seul l'auteur du document ou un administrateur peut modifier ou supprimer une ressource pédagogique.
+- **RF-4.10.6** : Interface étudiant en lecture seule stricte (règle RG32) avec consultation et téléchargement des supports par typologie chromatique.
+
+### 4.9 Communication & Notifications (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.9.1** : Publication d'annonces administratives ciblées (`tous`, `enseignants`, `etudiants`) avec gestion des alertes urgentes.
+- **RF-4.9.2** : Système de notifications individuelles en temps réel avec marquage lu/non-lu et protection stricte de propriété.
+
+### 4.11 Absences & Justificatifs (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.11.1** : Saisie de la feuille d'appel numérique par les enseignants avec calcul automatique de la durée des séances.
+- **RF-4.11.2** : Synchronisation transactionnelle atomique avec le compteur d'absences cumulées de chaque étudiant.
+- **RF-4.11.3** : Soumission de justificatifs par les étudiants dans la limite de 5 MB et circuit de validation administratif.
+
+### 4.17 Réclamations & Recours (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.17.1** : Dépôt de réclamation sur note avec vérification anti-usurpation d'identité étudiante.
+- **RF-4.17.2** : Console d'arbitrage administrative permettant la validation/rejet et l'ajustement direct de la note contestée.
+
+### 4.4 Projets de Fin d'Études - PFE (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.4.1** : Proposition de sujet de PFE par l'étudiant avec garde-fou anti-doublon (`PFE_ALREADY_EXISTS`).
+- **RF-4.4.2** : Affectation officielle de l'enseignant encadrant et constitution des jurys de soutenance.
+- **RF-4.4.3** : Notation finale et enregistrement de l'avis motivé de l'encadrant.
+
+### 4.5 Stages & Conventions (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.5.1** : Demande de convention de stage avec validation chronologique des dates (`dateFin >= dateDebut`).
+- **RF-4.5.2** : Cycle de vie administratif des conventions (`SOLICITEE`, `VALIDEE`, `REFUSEE`, `CONVENTION_SIGNEE`, `TERMINEE`).
+
+### 4.7 Affectations & Charges Horaires (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.7.1** : Gestion des interventions pédagogiques (CM, TD, TP) et suivi du volume horaire par rapport au statut de base.
+- **RF-4.7.2** : Attribution automatique des heures de cours magistraux au responsable de module.
+
+### 4.16 Délibérations & Résultats (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.16.1** : Moteur de calcul des moyennes modulaires pondérées et délibérations semestrielles.
+- **RF-4.16.2** : Attribution automatique des mentions officielles (`VALIDÉ`, `RATTRAPAGE`, `AJOURNÉ`).
+
+### 4.12 Salles & Ressources Matérielles (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.12.1** : Inventaire des locaux (cours, TP, TD, amphi) avec capacité maximale et état de disponibilité.
+- **RF-4.12.2** : Blocage de suppression si la salle possède des séances de cours ou examens planifiés.
+
+### 4.19 Formations Continues (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.19.1** : Catalogue des formations certifiantes ouvertes et gestion des inscriptions partenaires industriels.
+
+### 4.14 Tableaux de Bord & Statistiques (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.14.1** : Moteur analytique multi-profils calculant en temps réel les indicateurs clés pour chaque rôle.
+
+### 4.18 Clubs Étudiants & Vie Associative (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.18.1** : Vitrine publique des associations étudiantes et module d'adhésion en direct pour les étudiants inscrits.

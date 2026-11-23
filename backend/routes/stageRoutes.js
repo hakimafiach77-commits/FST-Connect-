@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { requestStage, getMyStages } = require('../controllers/stageController');
+const { getAllStages, requestStage, getMyStages, updateStageStatut } = require('../controllers/stageController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Request convention - Student Only
-router.post('/request', protect, authorize('student'), requestStage);
+router.use(protect);
 
-// Get my internships - Student Only
-router.get('/me', protect, authorize('student'), getMyStages);
+// Consultation générale (Admin & Enseignants)
+router.get('/', authorize('admin', 'teacher'), getAllStages);
+
+// Consultation personnelle
+router.get('/me', getMyStages);
+
+// Demande de convention (Étudiant uniquement)
+router.post('/request', authorize('student'), requestStage);
+
+// Décision / Validation administrative (Admin uniquement)
+router.patch('/:id/statut', authorize('admin'), updateStageStatut);
 
 module.exports = router;

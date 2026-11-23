@@ -69,6 +69,7 @@ const getUtilisateurs = async (req, res) => {
     res.json({
       status: 'success',
       data: utilisateurs,
+    
       pagination: {
         total,
         page: pageNum,
@@ -179,8 +180,23 @@ const createUtilisateur = async (req, res) => {
       return res.status(400).json({ message: 'Cet email est déjà associé à un compte' });
     }
 
-    const defaultPass = role === 'admin' ? 'admin123' : (role === 'teacher' ? 'prof123' : 'student123');
-    const rawPass = (motDePasse && motDePasse.trim()) ? motDePasse.trim() : defaultPass;
+    if (!motDePasse || typeof motDePasse !== 'string' || !motDePasse.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'PASSWORD_REQUIRED',
+        message: 'Le mot de passe est obligatoire pour créer un compte utilisateur'
+      });
+    }
+
+    const rawPass = motDePasse.trim();
+
+    if (rawPass.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'PASSWORD_TOO_SHORT',
+        message: 'Le mot de passe doit comporter au moins 6 caractères'
+      });
+    }
     const hashedPassword = await bcrypt.hash(rawPass, 10);
 
     const result = await prisma.$transaction(async (tx) => {
