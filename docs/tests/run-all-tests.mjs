@@ -15,7 +15,8 @@ const testSuites = [
   { name: '4.6 Gestion des enseignants', script: path.join(__dirname, 'tests-gestion-enseignants.mjs') },
   { name: '4.13 Filières, groupes et années', script: path.join(__dirname, 'tests-filieres-groupes.mjs') },
   { name: '4.15 Examens et notes', script: path.join(__dirname, 'tests-examens-notes.mjs') },
-  { name: '4.8 Emplois du temps', script: path.join(__dirname, 'tests-emplois-du-temps.mjs') }
+  { name: '4.8 Emplois du temps', script: path.join(__dirname, 'tests-emplois-du-temps.mjs') },
+  { name: '4.10 Modules et documents', script: path.join(__dirname, 'tests-modules-documents.mjs') }
 ];
 
 let globalStatus = 0;

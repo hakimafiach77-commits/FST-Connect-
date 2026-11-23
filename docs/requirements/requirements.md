@@ -70,3 +70,11 @@
 - **RF-4.8.5** : Espace enseignant (`MonPlanning.jsx`) avec navigation temporelle par semaine et déclenchement direct de la feuille d'appel numérique en séance.
 - **RF-4.8.6** : Interface étudiant (`EmploiDuTemps.jsx`) affichant l'emploi du temps hebdomadaire avec différenciation chromatique par type d'enseignement et export PDF.
 - **RF-4.8.7** : Vitrine publique (`/edt`) permettant aux visiteurs, étudiants et candidats de consulter et télécharger les emplois du temps officiels par filière.
+
+### 4.10 Modules Pédagogiques & Documents (Statut : TESTÉ & VALIDÉ ✅)
+- **RF-4.10.1** : Configuration des modules d'enseignement (code unique, intitulé, coefficient, semestre, filière de rattachement, responsable pédagogique).
+- **RF-4.10.2** : Affichage contextuel des modules selon le profil de l'utilisateur (étudiant : modules de sa filière ; enseignant : modules affectés ; administrateur : catalogue complet).
+- **RF-4.10.3** : Protection transactionnelle `FOR UPDATE` interdisant la suppression d'un module possédant des dépendances académiques (`MODULE_HAS_NOTES`, `MODULE_HAS_EXAMENS`, `MODULE_HAS_SEANCES`, `MODULE_HAS_AFFECTATIONS`, `MODULE_HAS_DOCUMENTS`).
+- **RF-4.10.4** : Gestion des supports et ressources documentaires par les enseignants et administrateurs (titre, type cours/TD/TP/devoir, fichier joint, horodatage).
+- **RF-4.10.5** : Sécurité Anti-IDOR garantissant que seul l'auteur du document ou un administrateur peut modifier ou supprimer une ressource pédagogique.
+- **RF-4.10.6** : Interface étudiant en lecture seule stricte (règle RG32) avec consultation et téléchargement des supports par typologie chromatique.

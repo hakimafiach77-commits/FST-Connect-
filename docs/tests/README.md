@@ -14,7 +14,8 @@ Ce dossier regroupe l'ensemble des **suites de tests exécutables**, des **proc�
 | **4.13** | **Filières, groupes & années** | [`tests-filieres-groupes.mjs`](./tests-filieres-groupes.mjs) | [PV 4.13 Filières](./test-report-4.13-filieres-groupes.md) | 44 / 44 | **VALIDÉ (100%)** ✅ |
 | **4.15** | **Examens et notes** | [`tests-examens-notes.mjs`](./tests-examens-notes.mjs) | [PV 4.15 Examens](./test-report-4.15-examens-notes.md) | 55 / 55 | **VALIDÉ (100%)** ✅ |
 | **4.8** | **Emplois du temps** | [`tests-emplois-du-temps.mjs`](./tests-emplois-du-temps.mjs) | [PV 4.8 EDT](./test-report-4.8-emplois-du-temps.md) | 59 / 59 | **VALIDÉ (100%)** ✅ |
-| **TOTAL** | **Modules Recettés** | — | — | **270 / 270** | **100% SUCCÈS** 🎉 |
+| **4.10** | **Modules et documents** | [`tests-modules-documents.mjs`](./tests-modules-documents.mjs) | [PV 4.10 Modules](./test-report-4.10-modules-documents.md) | 60 / 60 | **VALIDÉ (100%)** ✅ |
+| **TOTAL** | **Modules Recettés** | — | — | **330 / 330** | **100% SUCCÈS** 🎉 |
 
 ---
 
