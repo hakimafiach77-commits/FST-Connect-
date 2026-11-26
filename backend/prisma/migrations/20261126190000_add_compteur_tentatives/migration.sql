@@ -1,0 +1,2 @@
+ALTER TABLE "Utilisateur"
+ADD COLUMN "compteurTentatives" INTEGER NOT NULL DEFAULT 0;
