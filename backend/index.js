@@ -39,13 +39,6 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.json());
 
-// Detailed Payload Logger
-app.use((req, res, next) => {
-  if (req.method !== 'GET' && req.url !== '/api/sync') {
-    console.log('>>> Payload:', JSON.stringify(req.body, null, 2));
-  }
-  next();
-});
 
 // ── TEST PATCH ──
 app.patch('/api/test-patch', (req, res) => {
