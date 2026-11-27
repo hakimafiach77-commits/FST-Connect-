@@ -72,15 +72,11 @@ app.use('/api/examens', examenRoutes);
 // ── TEST ENDPOINT ──
 app.get('/api/status', async (req, res) => {
   try {
-    const userCount = await prisma.utilisateur.count();
-    res.json({ 
-      status: 'success', 
-      message: 'FST-Connect Backend is LIVE',
-      database: 'Connected',
-      stats: { utilisateurs: userCount }
-    });
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'success', database: 'Connected' });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Database health check failed');
+    res.status(503).json({ status: 'error', database: 'Unavailable' });
   }
 });
 
