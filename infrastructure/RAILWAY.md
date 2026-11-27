@@ -75,4 +75,6 @@ Prisma db push. Elle contient des comptes de demonstration.
 * Faire relire la migration reservee aux bases vides.
 * Ne pas appliquer cette migration a fst\_demo.
 * Verifier la securite avant une mise en production.
+* La sauvegarde de fst\_demo a ete restauree dans une base de test
+* separee sur Railway. Les trois utilisateurs y sont presents.
 
